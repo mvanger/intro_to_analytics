@@ -38,7 +38,7 @@ keywords = {}
 # If keyword is present, adds 1 to the counter
 # If not present, instantiates it with a count of 1
 arr.each do |word|
-  if keywords.has_key?(word)
+  if keywords.has_key?(:"#{word}")
     keywords[:"#{word}"] = keywords[:"#{word}"] + 1
   else
     keywords[:"#{word}"] = 1
@@ -51,11 +51,12 @@ keywords.each do |key, value|
 end
 
 # My resume, somehow, doesn't use any words twice. Or I have an error somewhere.
+### I had an error, but I think it's fixed
 
 # It may be a good idea to downcase everything first?
 
 # This is stuff I used for testing
-binding.pry
+# binding.pry
 # test = keywords.to_a
 # test2 = []
 # test.each do |x|
