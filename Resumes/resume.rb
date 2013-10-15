@@ -50,6 +50,9 @@ arr.each do |word|
   end
 end
 
+# metrics.sort_by {|_key, value| value}
+
+keywords = keywords.sort_by {|key, value| value}
 # Prints keywords and their count to the screen
 keywords.each do |key, value|
   puts "#{key}: #{value}"
