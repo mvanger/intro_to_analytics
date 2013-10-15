@@ -1,9 +1,12 @@
 # These are Ruby gems. The first allows reading of PDFs, the second is for testing
 require "pdf-reader"
 require "pry"
+require "stopwords"
+
+stopwords = Stopwords::STOP_WORDS
 
 # This loads a PDF as a Ruby object
-reader = PDF::Reader.new("Documents/Job Search/Michael Vanger Resume.pdf")
+reader = PDF::Reader.new(PATH NAME HERE)
 
 # Some resumes may be more than one page
 # So just loop through the reader.pages array
@@ -38,10 +41,12 @@ keywords = {}
 # If keyword is present, adds 1 to the counter
 # If not present, instantiates it with a count of 1
 arr.each do |word|
-  if keywords.has_key?(:"#{word}")
-    keywords[:"#{word}"] = keywords[:"#{word}"] + 1
-  else
-    keywords[:"#{word}"] = 1
+  if stopwords.include?("#{word}") == false
+    if keywords.has_key?(:"#{word}")
+      keywords[:"#{word}"] = keywords[:"#{word}"] + 1
+    else
+      keywords[:"#{word}"] = 1
+    end
   end
 end
 
