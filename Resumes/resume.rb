@@ -8,8 +8,8 @@ require "stopwords"
 # So methods have access to it
 @stopwords = Stopwords::STOP_WORDS
 
-# This stores the path of all the resumes in our year
-resumes = Dir["Analytics/Intro to Analytics/MSiA 400 Resumes/Resume Packet NU MSiA 2013-2014/*"]
+# This stores the path of all the resumes in the nonanalytics folder
+resumes = Dir["Analytics/Intro to Analytics/MSiA 400 Resumes/Resume Packet NonAnalytics/*/*"]
 
 # Instantiates an empty hash
 # A hash is a key: value pair
@@ -65,13 +65,20 @@ end
 resumes.each do |r|
   keyword_search(r)
 end
-
+binding.pry
 # This sorts the keywords by value
 @keywords = @keywords.sort_by {|key, value| value}
+
 # Prints keywords and their count to the screen
+# Creates a new .txt file and prints the keys and values to that file
+@f = File.new("nonanalytics.txt", "w")
 @keywords.each do |key, value|
-  puts "#{key}: #{value}"
+  # puts "#{key}: #{value}"
+  @f.write("#{key}\t#{value}\n")
 end
+@f.close
+
+
 
 # My resume, somehow, doesn't use any words twice. Or I have an error somewhere.
 ### I had an error, but I think it's fixed
