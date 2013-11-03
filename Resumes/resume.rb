@@ -2,6 +2,12 @@
 require "pdf-reader"
 require "pry"
 require "stopwords"
+require 'tesseract'
+
+@tesseract = Tesseract::Engine.new {|e|
+  e.language  = :eng
+  e.blacklist = '|'
+}
 
 # This is an array of stop words
 # The @ symbol means it is an instance variable, rather than a local variable
@@ -9,7 +15,7 @@ require "stopwords"
 @stopwords = Stopwords::STOP_WORDS
 
 # This stores the path of all the resumes in the nonanalytics folder
-resumes = Dir["Analytics/Intro to Analytics/MSiA 400 Resumes/Resume Packet NonAnalytics/*/*"]
+resumes = Dir["Analytics/Intro to Analytics/MSiA 400 Resumes/Resume Packet UTenn/*"]
 
 # Instantiates an empty hash
 # A hash is a key: value pair
@@ -31,6 +37,8 @@ def keyword_search(path_name)
     text = text + pp.text
   end
 
+  # text = @tesseract.text_for(path_name).strip
+
   # Replaces , ( ) with empty strings
   # What are some other symbols?
   # &, -
@@ -38,6 +46,9 @@ def keyword_search(path_name)
   text.gsub!(",","")
   text.gsub!("(","")
   text.gsub!(")","")
+  text.gsub!("[","")
+  text.gsub!("]","")
+  text.downcase!
   # This ● is throwing an error
   # But it works in pry for some reason
   # text.gsub!("●","")
@@ -65,13 +76,13 @@ end
 resumes.each do |r|
   keyword_search(r)
 end
-binding.pry
+# binding.pry
 # This sorts the keywords by value
 @keywords = @keywords.sort_by {|key, value| value}
 
 # Prints keywords and their count to the screen
 # Creates a new .txt file and prints the keys and values to that file
-@f = File.new("nonanalytics.txt", "w")
+@f = File.new("utenn.txt", "w")
 @keywords.each do |key, value|
   # puts "#{key}: #{value}"
   @f.write("#{key}\t#{value}\n")
