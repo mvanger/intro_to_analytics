@@ -4,6 +4,8 @@ require "pry"
 require "stopwords"
 require 'tesseract'
 
+# Sets up tesseract gem
+# This is for OCR
 @tesseract = Tesseract::Engine.new {|e|
   e.language  = :eng
   e.blacklist = '|'
@@ -15,7 +17,7 @@ require 'tesseract'
 @stopwords = Stopwords::STOP_WORDS
 
 # This stores the path of all the resumes in the nonanalytics folder
-resumes = Dir["Analytics/Intro to Analytics/MSiA 400 Resumes/Resume Packet UTenn/*"]
+resumes = Dir["Analytics/Intro to Analytics/MSiA 400 Resumes/Other as PNG/*"]
 
 # Instantiates an empty hash
 # A hash is a key: value pair
@@ -25,19 +27,20 @@ resumes = Dir["Analytics/Intro to Analytics/MSiA 400 Resumes/Resume Packet UTenn
 # This is a method that looks through a resume and updates the @keywords hash
 def keyword_search(path_name)
   # This loads a PDF as a Ruby object
-  reader = PDF::Reader.new(path_name)
+  # reader = PDF::Reader.new(path_name)
 
   # Some resumes may be more than one page
   # So just loop through the reader.pages array
-  text = ""
+  # text = ""
 
-  # This sets text as a string of all the text in a resume
-  reader.pages.each do |pp|
-    text = text + " "
-    text = text + pp.text
-  end
+  # # This sets text as a string of all the text in a resume
+  # reader.pages.each do |pp|
+  #   text = text + " "
+  #   text = text + pp.text
+  # end
 
-  # text = @tesseract.text_for(path_name).strip
+  # Sets text as the OCR extracted text
+  text = @tesseract.text_for(path_name).strip
 
   # Replaces , ( ) with empty strings
   # What are some other symbols?
@@ -57,11 +60,19 @@ def keyword_search(path_name)
   # It splits on the spaces (" ")
   arr = text.split
 
+  # Sets the word array to be all pairs in the arr array
+  # Doesn't check stopwords her
+  ## I can go and redo it if necessary
+  word_array = []
+  for i in 0..arr.length-2
+    word_array << arr[i] + "_" + arr[i+1]
+  end
+
   # Loops through array
   # If keyword is present, adds 1 to the counter
   # If not present, instantiates it with a count of 1
   # binding.pry
-  arr.each do |word|
+  word_array.each do |word|
     if @stopwords.include?("#{word}") == false
       if @keywords.has_key?(:"#{word}")
         @keywords[:"#{word}"] = @keywords[:"#{word}"] + 1
@@ -82,7 +93,7 @@ end
 
 # Prints keywords and their count to the screen
 # Creates a new .txt file and prints the keys and values to that file
-@f = File.new("utenn.txt", "w")
+@f = File.new("other_double_words.txt", "w")
 @keywords.each do |key, value|
   # puts "#{key}: #{value}"
   @f.write("#{key}\t#{value}\n")
