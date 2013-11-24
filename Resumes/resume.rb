@@ -1,4 +1,5 @@
 # These are Ruby gems. The first allows reading of PDFs, the second is for testing
+# Stopwords
 require "pdf-reader"
 require "pry"
 require "stopwords"
@@ -36,6 +37,7 @@ end
 
 # Declares an array for text
 resumes_text = []
+resumes_path = []
 
 # Extracts text from pdfs and pushes it into text array
 resumes_pdf.each do |r|
@@ -52,6 +54,7 @@ resumes_pdf.each do |r|
   # text.gsub!("]","")
   # text.downcase!
   resumes_text << text
+  resumes_path << r
 end
 
 # Extracts text from pngs and pushes it into text array
@@ -64,6 +67,7 @@ resumes_png.each do |r|
   # text.gsub!("]","")
   # text.downcase!
   resumes_text << text
+  resumes_path << r
 end
 
 # Declares an array for all results
@@ -190,11 +194,13 @@ def resume_to_array(text)
 end
 
 # This extracts the name of the applicant from the file name
-# It doesn't work that well in general
-# Works well for betas at least
 def get_name(path_name)
   resume_file_name = path_name.downcase.split('/').last
+  # Replace 'resume' with whatever comes after the name in that folder
   end_index = resume_file_name.index('resume')
+  # This is for the nonanalytics folder
+  # first_index = resume_file_name.index("_")
+  # end_index = resume_file_name.index('_', first_index + 1)
   name = resume_file_name[0, end_index - 1]
   return name
 end
@@ -210,6 +216,17 @@ def get_university_rank(text)
     end
   end
   return rank
+end
+
+# Extracts name of highest-ranked university in resume
+def get_university_name(text)
+  name = nil
+  @universities.reverse.each do |u|
+    if text.include?(u.downcase)
+      name = u
+    end
+  end
+  return name
 end
 
 # Extracts the GPA
@@ -261,6 +278,7 @@ end
 # Checks to see if a relevant role is present
 # This might be a counting stat instead
 # Should check with Blackhawks
+## This is a counting stat
 def has_relevant_role(text)
   result = 0
   @relevant_roles.each do |r|
@@ -305,6 +323,11 @@ def number_of_certifications(text)
   return result
 end
 
+#### These contain some double counts
+# Can check based on if dictionary includes substring
+# Or by ordering by triples, pairs, etc and deleting a match from the text
+## So 'certificate program' and 'certificate' don't get counted twice
+
 # Counts the number of honors, based on dictionary
 def number_of_honors(text)
   result = 0
@@ -325,6 +348,16 @@ def number_of_awards(text)
     end
   end
   return result
+end
+
+def email(text_array)
+  email = nil
+  text_array.each do |t|
+    if t.match(/.{1,}[@].{1,}[.].{1,}/)
+      email = t
+    end
+  end
+  return email
 end
 
 # Uses all those methods for a resume
@@ -349,18 +382,42 @@ resumes_text.each do |r|
   all_results << compile_all(r)
 end
 
+# Empty array for twitter data
+twitter_results = []
+
+# Gets names
+resumes_path.each do |r|
+  result = {}
+  result[:name] = get_name(r)
+  twitter_results << result
+end
+
+# Gets emails and university
+resumes_text.each_with_index do |r, i|
+  twitter_results[i][:university] = get_university_name(r)
+  twitter_results[i][:email] = email(resume_to_array(r))
+end
+
 # Puts the hashes to the screen
-puts all_results
+# puts all_results
+puts twitter_results
 
 # Creates a new .txt file for the results
-@f = File.new("nonanalytics.txt", "w")
+@f = File.new("nonanalytics_twitter.txt", "w")
+
 # Writes the header categories to the file. tab-delimited
-@f.write("university_rank\tmasters\tdoctorate\trelevant_role\tstats_skills\tcertifications\thonors\tawards\tgpa\tprogramming_languages\n")
+# @f.write("university_rank\tmasters\tdoctorate\trelevant_role\tstats_skills\tcertifications\thonors\tawards\tgpa\tprogramming_languages\n")
+@f.write("name\tuniversity\temail\n")
+
 # Loops through all resumes and writes them to the file
-all_results.each do |r|
+# all_results.each do |r|
   # puts "#{key}: #{value}"
-  @f.write("#{r[:university_rank]}\t#{r[:masters]}\t#{r[:doctorate]}\t#{r[:relevant_role]}\t#{r[:stats_skills]}\t#{r[:certifications]}\t#{r[:honors]}\t#{r[:awards]}\t#{r[:gpa]}\t#{r[:programming_languages]}\n")
+  # @f.write("#{r[:university_rank]}\t#{r[:masters]}\t#{r[:doctorate]}\t#{r[:relevant_role]}\t#{r[:stats_skills]}\t#{r[:certifications]}\t#{r[:honors]}\t#{r[:awards]}\t#{r[:gpa]}\t#{r[:programming_languages]}\n")
+# end
+twitter_results.each do |r|
+  @f.write("#{r[:name]}\t#{r[:university]}\t#{r[:email]}\n")
 end
+
 @f.close
 
 # Have a nice day :)
